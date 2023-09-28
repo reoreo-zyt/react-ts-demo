@@ -7,13 +7,15 @@
 
 ### 初始化项目
 
-*初始化package.json*
+#### 初始化 package.json
+
+`root/`
 
 ```bash
 yarn init -y
 ```
 
-*@/package.json*
+`root/package.json`
 
 ```bash
 ├── build
@@ -29,19 +31,25 @@ yarn init -y
 └── package.json
 ```
 
-*安装 react 依赖*
+#### 安装 react 依赖
+
+`root/`
 
 ```bash
 yarn add react react-dom
 ```
 
-*安装类型依赖*
+#### 安装类型依赖
+
+`root/`
 
 ```bash
 yarn add @types/react @types/react-dom -D
 ```
 
-*@/public/index.html*
+#### 添加业务内容
+
+`root/public/index.html`
 
 ```html
 <!DOCTYPE html>
@@ -59,7 +67,7 @@ yarn add @types/react @types/react-dom -D
 </html>
 ```
 
-*添加tsconfig.json内容*
+`root/tsconfig.json`
 
 ```json
 {
@@ -83,7 +91,7 @@ yarn add @types/react @types/react-dom -D
 }
 ```
 
-*添加 @src/App.tsx 内容*
+`root/src/App.tsx`
 
 ```tsx
 import React from 'react'
@@ -94,7 +102,7 @@ function App() {
 export default App
 ```
 
-*添加 @src/index.tsx 内容*
+`root/src/index.tsx`
 
 ```tsx
 import React from 'react';
@@ -105,4 +113,64 @@ const root = document.getElementById('root');
 if(root) {
   createRoot(root).render(<App />)
 }
+```
+
+### 配置 webpack
+
+#### webpack 公共配置
+
+- *配置入口出口文件*
+- *配置 loader 解析 ts 和 jsx*
+- *resolve 解析文件后缀（引入时可以不加文件后缀）*
+- *html-webpack-plugin 引入静态资源到 html 中*
+
+`root/build/webpack.base.js`
+
+```js
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+
+module.exports = {
+    entry: join(__dirname, '../src/index.tsx'),
+    output: {
+        filename: 'static/js/[name].js',
+        path: join(__dirname, '../dist'),
+        clean: true,
+        publicPath: '/', // 打包后文件的公共前缀路径
+    },
+    module: {
+        rules: [
+            {
+                test: /.(ts|tsx)$/, // 匹配.ts, tsx文件
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        // 预设执行顺序由右往左,所以先处理ts,再处理jsx
+                        presets: [
+                            '@babel/preset-react',
+                            '@babel/preset-typescript'
+                        ]
+                    }
+                }
+            }
+        ]
+    },
+    resolve: {
+        extensions: ['.js', '.tsx', '.ts'],
+    },
+    plugins: [
+        new HtmlWebpackPlugin({
+            template: path.resolve(__dirname, '../public/index.html'), // 模板取定义root节点的模板
+            inject: true, // 自动注入静态资源
+        })
+    ]
+}
+```
+
+#### webpack 开发环境配置
+
+`root/build/webpack.dev.js`
+
+```bash
+webpack-dev-server webpack-merge -D
 ```
